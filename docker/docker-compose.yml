@@ -17,13 +17,6 @@ services:
       - ./init-scripts:/docker-entrypoint-initdb.d
       # Persistente Datenspeicherung
       - mongodb_data:/data/db
-    networks:
-      - medienausleihe-network
 
 volumes:
   mongodb_data:
-
-networks:
-  medienausleihe-network:
-    name: medienausleihe-network
-    driver: bridge
