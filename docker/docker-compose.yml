@@ -14,7 +14,7 @@ services:
       - MONGO_INITDB_DATABASE=${MONGO_DATABASE:-medienausleihe}
     volumes:
       # Init-Scripts für Benutzer-Setup
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ../init-scripts:/docker-entrypoint-initdb.d
       # Persistente Datenspeicherung
       - mongodb_data:/data/db
 
