@@ -4,5 +4,5 @@ FROM mongo:7.0
 # Copy mongo configuration
 COPY docker/mongo.conf /etc/mongod.conf
 
-# Standard MongoDB Command mit Custom Config
+# MongoDB mit Custom Config (Port wird aus mongo.conf gelesen)
 CMD ["mongod", "--config", "/etc/mongod.conf", "--bind_ip_all", "--auth"]
