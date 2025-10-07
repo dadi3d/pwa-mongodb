@@ -1,0 +1,22 @@
+services:
+  mongodb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medienausleihe-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      # MongoDB Root User erstellen
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-medienausleihe2024}
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE:-medienausleihe}
+    volumes:
+      # Init-Scripts für Benutzer-Setup
+      - ../init-scripts:/docker-entrypoint-initdb.d
+      # Persistente Datenspeicherung
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
