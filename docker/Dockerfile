@@ -1,12 +1,8 @@
-# MongoDB mit Custom Startup Script
+# MongoDB mit Custom Configuration
 FROM mongo:7.0
 
-# Copy startup script und mache es ausführbar
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
+# Copy mongo configuration
+COPY docker/mongo.conf /etc/mongod.conf
 
-# Setze Custom Entrypoint
-ENTRYPOINT ["/startup.sh"]
-
-# Standard MongoDB Command
-CMD ["mongod", "--bind_ip_all", "--auth"]
+# Standard MongoDB Command mit Custom Config
+CMD ["mongod", "--config", "/etc/mongod.conf", "--bind_ip_all", "--auth"]
