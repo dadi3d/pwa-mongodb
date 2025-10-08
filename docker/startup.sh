@@ -25,3 +25,4 @@ echo "=========================================="
 
 # Call the original MongoDB entrypoint
 exec docker-entrypoint.sh "$@"
+

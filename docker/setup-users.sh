@@ -30,3 +30,4 @@ echo "✅ Benutzer erfolgreich erstellt!"
 echo "🔑 Compass Connection Strings:"
 echo "   Admin: mongodb://admin:medienausleihe2024@localhost:27017/medienausleihe?authSource=admin"
 echo "   App:   mongodb://medienapp:medienapp2024@localhost:27017/medienausleihe"
+
