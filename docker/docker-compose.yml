@@ -7,11 +7,15 @@ services:
     restart: unless-stopped
     ports:
       - "${MONGO_PORT:-27018}:27018"
+    env_file:
+      - .env
     environment:
       # MongoDB Root User erstellen
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-medienausleihe2024}
       - MONGO_INITDB_DATABASE=${MONGO_DATABASE:-medienausleihe}
+      - SERVER_HOST=${SERVER_HOST:-95.175.98.147}
+      - MONGO_PORT=${MONGO_PORT:-27018}
     volumes:
       # Init-Scripts für Benutzer-Setup
       - ../init-scripts:/docker-entrypoint-initdb.d
@@ -20,3 +24,5 @@ services:
 
 volumes:
   mongodb_data:
+
+# Eigenständiger Service - keine Build-Zeit-Abhängigkeiten
