@@ -106,8 +106,10 @@ function restore_backup() {
 function connect_shell() {
     echo "Connecting to MongoDB shell..."
     echo "Use: db.help() for help"
-    echo "Note: Using medienapp credentials (must be created via ADDITIONAL_USERS)"
-    docker exec -it $CONTAINER_NAME mongosh mongodb://medienapp:medienapp2024@localhost:27018/medienausleihe
+    echo "⚠️  WARNUNG: Verwenden Sie die Admin-Credentials aus Ihrer .env Datei!"
+    echo "Beispiel: docker exec -it $CONTAINER_NAME mongosh mongodb://ADMIN_USER:***@localhost:${MONGO_PORT}/medienausleihe"
+    echo "Abbruch... Verwenden Sie die korrekten Credentials aus .env"
+    # Sichere Verbindung verwenden - Credentials aus .env laden
 }
 
 # Main script logic

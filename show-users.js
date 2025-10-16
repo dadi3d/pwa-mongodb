@@ -1,5 +1,5 @@
 // Script zum Anzeigen aller Nutzer und MongoDB Status
-// Ausführung: mongosh --host localhost:27018 -u admin -p medienausleihe2024 --authenticationDatabase admin show-users.js
+// Ausführung: mongosh --host localhost:27018 -u ADMIN_USERNAME -p ADMIN_PASSWORT --authenticationDatabase admin show-users.js
 
 print('='.repeat(60));
 print('📊 MongoDB Status:');

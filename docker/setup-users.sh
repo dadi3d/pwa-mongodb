@@ -2,8 +2,8 @@
 
 echo "🔧 MongoDB Benutzer manuell erstellen..."
 
-# Port aus Environment verwenden
-MONGO_PORT=${MONGO_PORT}
+# Lade .env Variablen
+source .env
 
 # Warte bis MongoDB bereit ist
 echo "⏳ Warte auf MongoDB (Port: $MONGO_PORT)..."
@@ -13,8 +13,8 @@ sleep 5
 echo "👤 Erstelle Admin-Benutzer..."
 docker exec medienausleihe-mongodb mongosh --port $MONGO_PORT --eval "
 db.getSiblingDB('admin').createUser({
-  user: 'admin',
-  pwd: 'medienausleihe2024', 
+  user: '$MONGO_INITDB_ROOT_USERNAME',
+  pwd: '$MONGO_INITDB_ROOT_PASSWORD', 
   roles: ['root']
 });
 "
@@ -22,6 +22,6 @@ db.getSiblingDB('admin').createUser({
 echo "✅ Admin-Benutzer erfolgreich erstellt!"
 echo "ℹ️  App-Benutzer werden über ADDITIONAL_USERS Environment Variable erstellt"
 echo "🔑 Compass Connection Strings:"
-echo "   Admin: mongodb://admin:medienausleihe2024@localhost:$MONGO_PORT/medienausleihe?authSource=admin"
-echo "   App:   mongodb://medienapp:medienapp2024@localhost:$MONGO_PORT/medienausleihe (falls über ADDITIONAL_USERS erstellt)"
+echo "   Admin: mongodb://${MONGO_INITDB_ROOT_USERNAME}:***@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DATABASE}?authSource=admin"
+echo "   Apps werden über ADDITIONAL_USERS definiert"
 

@@ -1,51 +1,79 @@
 # PWA-MongoDB Setup
 
-MongoDB Container für die Medienausleihe-Anwendung mit automatischer Nutzer-Erstellung.
+> ⚠️ **SICHERHEITSHINWEIS**: Verwenden Sie NIEMALS die Beispiel-Passwörter aus dieser Dokumentation! Kopieren Sie `.env.example` zu `.env` und setzen Sie eigene sichere Passwörter. Siehe [SECURITY.md](SECURITY.md) für Sicherheitsrichtlinien.
+
+MongoDB Container für die Medienausleihe-Anwendung mit automatischer Nutzer-Verwaltung.
+
+## 🆕 Neue Features
+
+- ✅ **Automatische Nutzer-Überprüfung bei jedem Start**
+- ✅ **Nutzer werden bei jedem Container-Start geprüft und ergänzt**
+- ✅ **Rollenaktualisierung für bestehende Nutzer**
+- ✅ **Hilfsskript für Nutzer-Verwaltung**
 
 ## Features
 
 - ✅ MongoDB 7.0 mit Custom Configuration
 - ✅ Automatische Root- und App-User Erstellung
-- ✅ Flexible zusätzliche Nutzer-Erstellung über Build-Argumente
+- ✅ **Kontinuierliche Nutzer-Synchronisation bei jedem Start**
+- ✅ Flexible zusätzliche Nutzer-Erstellung über Umgebungsvariablen
 - ✅ Custom Port-Konfiguration (Standard: 27018)
 - ✅ Persistent Data Storage
 - ✅ Development & Production Ready
 
 ## Quick Start
 
+> ⚠️ **WICHTIG**: Vor dem ersten Start kopieren Sie `.env.example` zu `.env` und setzen Sie sichere Passwörter!
+
 ```bash
-# Standard Setup (nur Standard-Nutzer)
+# 1. Sichere Konfiguration erstellen
+cp docker/.env.example docker/.env
+# BEARBEITEN Sie .env und setzen Sie sichere Passwörter!
+
+# 2. Standard Setup starten
 cd docker
 docker-compose up -d
 
-# Mit zusätzlichen Nutzern
-ADDITIONAL_USERS='[{"name":"testuser","password":"test123","role":"readWrite"}]' docker-compose up -d --build
+# Container neu starten (Nutzer werden automatisch überprüft)
+docker-compose restart
+
+# Logs anzeigen um Nutzer-Status zu sehen
+docker-compose logs mongodb
 ```
 
-## Konfiguration
+## 👥 Nutzer-Verwaltung
+
+### Automatische Nutzer-Synchronisation
+
+Bei **jedem Container-Start** werden die konfigurierten Nutzer überprüft:
+- ✅ Fehlende Nutzer werden automatisch erstellt
+- ✅ Bestehende Nutzer werden erkannt und übersprungen  
+- ✅ Rollen werden bei Bedarf aktualisiert
+- ✅ Detaillierte Logs über alle Aktionen
 
 ### Standard-Nutzer
 
 Werden automatisch erstellt:
-- **Root-User**: `admin:medienausleihe2024` (Full Access)
+- **Root-User**: `${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}` (Full Access)
 
 ### App-Nutzer & Zusätzliche Nutzer
 
-Alle Anwendungsnutzer (inklusive App-User) werden über die `ADDITIONAL_USERS` Umgebungsvariable definiert.
+Alle Anwendungsnutzer werden über die `ADDITIONAL_USERS` Umgebungsvariable in der `.env`-Datei definiert.
 
-**Standard-Konfiguration** (bereits in `.env` enthalten):
+**Konfigurationsformat** (siehe `.env.example`):
 ```json
-[{"name":"medienapp","password":"medienapp2024","role":"readWrite"}]
+[
+  {"name":"app_user","password":"SICHERES_PASSWORT","role":"readWrite"},
+  {"name":"viewer","password":"SICHERES_PASSWORT","role":"read"}
+]
 ```
-
-**Zusätzliche Nutzer** können ebenfalls über `ADDITIONAL_USERS` hinzugefügt werden:
 
 #### Format
 ```json
 [
   {
     "name": "username",
-    "password": "password", 
+    "password": "SICHERES_PASSWORT", 
     "role": "readWrite"
   }
 ]
@@ -60,64 +88,91 @@ Alle Anwendungsnutzer (inklusive App-User) werden über die `ADDITIONAL_USERS` U
 #### Beispiele
 
 **Einzelner Nutzer:**
-```bash
-export ADDITIONAL_USERS='[{"name":"viewer","password":"view123","role":"read"}]'
+```env
+ADDITIONAL_USERS=[{"name":"viewer","password":"SICHERES_PASSWORT","role":"read"}]
 ```
 
 **Mehrere Nutzer:**
-```bash
-export ADDITIONAL_USERS='[
-  {"name":"viewer","password":"view123","role":"read"},
-  {"name":"editor","password":"edit123","role":"readWrite"},
-  {"name":"dbadmin","password":"admin123","role":"dbAdmin"}
-]'
+```env
+ADDITIONAL_USERS=[{"name":"viewer","password":"SICHERES_PASSWORT","role":"read"},{"name":"editor","password":"SICHERES_PASSWORT","role":"readWrite"},{"name":"dbadmin","password":"SICHERES_PASSWORT","role":"dbAdmin"}]
 ```
 
-**In .env Datei:**
+**Produktionsumgebung:**
 ```env
-ADDITIONAL_USERS=[{"name":"testuser","password":"test123","role":"readWrite"}]
+ADDITIONAL_USERS=[{"name":"medienausleihe_app","password":"SEHR_SICHERES_PASSWORT","role":"readWrite"}]
+```
+
+## 🔧 Nutzer-Verwaltungswerkzeuge
+
+### Hilfsskript verwenden
+
+```bash
+# Alle verfügbaren Befehle anzeigen
+./check-users.sh help
+
+# Alle Nutzer in der Datenbank auflisten
+./check-users.sh list
+
+# Verbindung mit konfigurierten Nutzern testen
+./check-users.sh test
+
+# Aktuelle Konfiguration anzeigen
+./check-users.sh env
+```
+
+### Manuelle Nutzer-Überprüfung
+
+```bash
+# Container-Logs anzeigen (zeigt Nutzer-Status beim Start)
+docker-compose logs mongodb
+
+# In laufenden Container einloggen  
+docker-compose exec mongodb mongosh -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin
+
+# Nutzer in Datenbank anzeigen
+docker-compose exec mongodb mongosh -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase admin --eval "db.getSiblingDB('${MONGO_DATABASE}').runCommand({usersInfo: 1})"
 ```
 
 ## Environment Variables
 
-### Basis-Konfiguration (.env)
+### Basis-Konfiguration (.env.example)
 ```env
-# MongoDB Port
+# MongoDB Host & Port
+MONGO_HOST=localhost
 MONGO_PORT=27018
 
-# Root Credentials
-MONGO_ROOT_USERNAME=admin
-MONGO_ROOT_PASSWORD=medienausleihe2024
+# Root Credentials - ÄNDERN SIE DIESE WERTE!
+MONGO_INITDB_ROOT_USERNAME=admin
+MONGO_INITDB_ROOT_PASSWORD=SICHERES_ROOT_PASSWORT
 
 # Application Database
 MONGO_DATABASE=medienausleihe
 
-# App & Additional Users (JSON Array)
-# Standard App-Benutzer ist bereits enthalten
-ADDITIONAL_USERS=[{"name":"medienapp","password":"medienapp2024","role":"readWrite"}]
+# App & Additional Users (JSON Array) - SICHERE PASSWÖRTER VERWENDEN!
+ADDITIONAL_USERS=[{"name":"app_user","password":"SICHERES_PASSWORT","role":"readWrite"},{"name":"viewer","password":"SICHERES_PASSWORT","role":"read"}]
 ```
 
 ## Connection Strings
 
 ### Für Anwendungen
 ```javascript
-// Standard App-User
-mongodb://medienapp:medienapp2024@localhost:27018/medienausleihe
+// Beispiel App-User (aus .env ADDITIONAL_USERS)
+mongodb://app_user:SICHERES_PASSWORT@localhost:27018/medienausleihe
 
-// Custom User (falls erstellt)
-mongodb://username:password@localhost:27018/medienausleihe
+// Viewer User (aus .env ADDITIONAL_USERS)
+mongodb://viewer:SICHERES_PASSWORT@localhost:27018/medienausleihe
 ```
 
 ### Für MongoDB Compass
 ```
-# Admin User
-mongodb://admin:medienausleihe2024@localhost:27018/medienausleihe?authSource=admin
+# Admin User (aus .env)
+mongodb://admin:SICHERES_ROOT_PASSWORT@localhost:27018/medienausleihe?authSource=admin
 
-# App User  
-mongodb://medienapp:medienapp2024@localhost:27018/medienausleihe
+# App User (aus .env ADDITIONAL_USERS)
+mongodb://app_user:SICHERES_PASSWORT@localhost:27018/medienausleihe
 
-# Custom User
-mongodb://username:password@localhost:27018/medienausleihe
+# Viewer User (aus .env ADDITIONAL_USERS)
+mongodb://viewer:SICHERES_PASSWORT@localhost:27018/medienausleihe
 ```
 
 ## Deployment
@@ -131,7 +186,7 @@ docker-compose up -d
 ### Production
 ```bash
 # Mit Custom Users
-export ADDITIONAL_USERS='[{"name":"produser","password":"secure123","role":"readWrite"}]'
+export ADDITIONAL_USERS='[{"name":"produser","password":"SICHERES_PASSWORT","role":"readWrite"}]'
 docker-compose -f docker-compose.yml up -d --build
 ```
 
@@ -139,15 +194,16 @@ docker-compose -f docker-compose.yml up -d --build
 ```bash
 # Direct Docker Build
 docker build \
-  --build-arg ADDITIONAL_USERS='[{"name":"builduser","password":"build123"}]' \
+  --build-arg ADDITIONAL_USERS='[{"name":"builduser","password":"SICHERES_PASSWORT"}]' \
   -f docker/Dockerfile \
   -t medienausleihe-mongodb .
 
 docker run -d \
   -p 27018:27018 \
   -e MONGO_INITDB_ROOT_USERNAME=admin \
-  -e MONGO_INITDB_ROOT_PASSWORD=medienausleihe2024 \
-  -e ADDITIONAL_USERS='[{"name":"runuser","password":"run123"}]' \
+  -e MONGO_INITDB_ROOT_PASSWORD=SICHERES_ROOT_PASSWORT \
+  -e MONGO_INITDB_DATABASE=medienausleihe \
+  -e ADDITIONAL_USERS='[{"name":"app_user","password":"SICHERES_PASSWORT","role":"readWrite"}]' \
   medienausleihe-mongodb
 ```
 
