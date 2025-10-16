@@ -106,7 +106,8 @@ function restore_backup() {
 function connect_shell() {
     echo "Connecting to MongoDB shell..."
     echo "Use: db.help() for help"
-    docker exec -it $CONTAINER_NAME mongosh mongodb://medienapp:medienapp2024!@localhost:27017/medienausleihe
+    echo "Note: Using medienapp credentials (must be created via ADDITIONAL_USERS)"
+    docker exec -it $CONTAINER_NAME mongosh mongodb://medienapp:medienapp2024@localhost:27018/medienausleihe
 }
 
 # Main script logic
